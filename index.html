@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TikTok Upload Method</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #111111;
+      --surface: #181818;
+      --surface2: #202020;
+      --surface3: #282828;
+      --border: rgba(255, 255, 255, 0.07);
+      --gold: #ffd84d;
+      --gold-glow: rgba(255, 216, 77, 0.12);
+      --accent: #7c9ef8;
+      --accent-glow: rgba(124, 158, 248, 0.13);
+      --accent2: #a78bfa;
+      --accent2-glow: rgba(167, 139, 250, 0.10);
+      --text: #f0f2f8;
+      --muted: #6e6e7a;
+      --muted2: #a8a8b8;
+      --radius: 20px;
+      --green: #5eead4;
+      --green-glow: rgba(94, 234, 212, 0.08);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .page-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 500px;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: -160px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 700px;
+      height: 500px;
+      background: radial-gradient(ellipse, rgba(124, 158, 248, 0.05) 0%, transparent 65%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .card {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: 0 40px 100px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.03);
+    }
+
+    /* Header */
+    .header {
+      padding: 24px 28px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted2);
+      letter-spacing: 0.3px;
+    }
+
+    .logo strong {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    /* Description */
+    .description {
+      margin: 18px 28px 0;
+    }
+
+    .desc-text {
+      font-size: 13px;
+      color: var(--muted2);
+      line-height: 1.65;
+    }
+
+    .desc-text strong {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    /* Drop zone */
+    .drop-zone {
+      margin: 16px 24px;
+      border: 1.5px dashed rgba(255, 216, 77, 0.3);
+      border-radius: var(--radius);
+      padding: 36px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.22s ease;
+      position: relative;
+      overflow: hidden;
+      background: rgba(255, 216, 77, 0.015);
+    }
+
+    .drop-zone:hover,
+    .drop-zone.over {
+      border-color: var(--gold);
+      background: rgba(255, 216, 77, 0.05);
+    }
+
+    .drop-zone.over::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, rgba(255, 216, 77, 0.07), transparent 70%);
+    }
+
+    .drop-icon {
+      width: 50px;
+      height: 50px;
+      margin: 0 auto 14px;
+      background: var(--surface3);
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      transition: transform 0.22s ease;
+      border: 1px solid var(--border);
+    }
+
+    .drop-zone:hover .drop-icon {
+      transform: scale(1.06) translateY(-2px);
+    }
+
+    .drop-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 5px;
+    }
+
+    .drop-sub {
+      font-size: 11.5px;
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+    }
+
+    #file-input {
+      display: none;
+    }
+
+    /* File info */
+    .file-info {
+      display: none;
+      margin: 0 24px;
+      padding: 13px 16px;
+      background: var(--surface2);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      align-items: center;
+      gap: 12px;
+    }
+
+    .file-info.show {
+      display: flex;
+    }
+
+    .file-icon-box {
+      width: 36px;
+      height: 36px;
+      background: var(--accent-glow);
+      border: 1px solid rgba(124, 158, 248, 0.2);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+
+    .file-details {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .file-name {
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-size {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+      margin-top: 2px;
+    }
+
+    .remove-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 20px;
+      padding: 4px 6px;
+      border-radius: 6px;
+      transition: color 0.18s;
+      line-height: 1;
+    }
+
+    .remove-btn:hover {
+      color: #f87c7c;
+    }
+
+    /* Status */
+    .status-row {
+      display: none;
+      margin: 14px 24px 0;
+      padding: 11px 15px;
+      border-radius: 11px;
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .status-row.show {
+      display: flex;
+    }
+
+    .status-row.patched {
+      background: rgba(255, 216, 77, 0.06);
+      color: var(--gold);
+      border: 1px solid rgba(255, 216, 77, 0.22);
+    }
+
+    .status-row.warn {
+      background: rgba(248, 196, 124, 0.07);
+      color: #f8c47c;
+      border: 1px solid rgba(248, 196, 124, 0.18);
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+    }
+
+    /* Button */
+    .btn-wrap {
+      padding: 18px 24px 22px;
+    }
+
+    .patch-btn {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, var(--gold) 0%, #f5a623 100%);
+      color: #111111;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      letter-spacing: 0.15px;
+      box-shadow: 0 4px 20px rgba(255, 216, 77, 0.2);
+    }
+
+    .patch-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 28px rgba(255, 216, 77, 0.3);
+      filter: brightness(1.06);
+    }
+
+    .patch-btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .patch-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* Divider */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 0 24px;
+    }
+
+    /* Instructions */
+    .instructions {
+      padding: 18px 24px 26px;
+    }
+
+    .instructions-title {
+      font-size: 10.5px;
+      font-family: 'DM Mono', monospace;
+      color: var(--muted);
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .tip {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tip:last-child {
+      border-bottom: none;
+    }
+
+    .tip-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+      color: var(--muted);
+      opacity: 0.7;
+    }
+
+    .tip-text {
+      font-size: 12.5px;
+      color: var(--muted2);
+      line-height: 1.55;
+    }
+
+    .tip-text strong {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .privacy-outer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 14px 0 2px;
+      font-family: 'DM Mono', monospace;
+      font-size: 10.5px;
+      color: var(--muted);
+      opacity: 0.55;
+      letter-spacing: 0.2px;
+      width: 100%;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="page-wrap">
+    <div class="card">
+      <div class="header">
+        <div class="logo"><strong>TikTok Upload Method</strong></div>
+      </div>
+
+      <div class="description">
+        <div class="desc-text">
+          Patch of the <strong>elst</strong> atom (<strong>0x10</strong>) bypasses TikTok's compression algorithms,
+          preserving the original video quality.
+        </div>
+      </div>
+
+      <div class="drop-zone" id="dropZone">
+        <div class="drop-icon">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 4L14 18" stroke="#ffd84d" stroke-width="2.2" stroke-linecap="round" />
+            <path d="M8 10L14 4L20 10" stroke="#ffd84d" stroke-width="2.2" stroke-linecap="round"
+              stroke-linejoin="round" />
+            <path d="M5 22H23" stroke="#ffd84d" stroke-width="2.2" stroke-linecap="round" />
+          </svg>
+        </div>
+        <div class="drop-label">Drop your video file here</div>
+        <div class="drop-sub">or click to browse · mp4 / mov</div>
+        <input type="file" id="file-input" accept="video/*">
+      </div>
+
+      <div class="file-info" id="fileInfo">
+        <div class="file-icon-box">🎞</div>
+        <div class="file-details">
+          <div class="file-name" id="fileName">—</div>
+          <div class="file-size" id="fileSize">—</div>
+        </div>
+        <button class="remove-btn" id="removeBtn" title="Remove">×</button>
+      </div>
+
+      <div class="status-row" id="statusRow">
+        <div class="status-dot"></div>
+        <span id="statusText"></span>
+      </div>
+
+      <div class="btn-wrap">
+        <button class="patch-btn" id="patchBtn" disabled>Apply patch & download</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="instructions">
+        <div class="instructions-title">Upload instructions</div>
+        <div class="tip">
+          <div class="tip-icon">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="1" y="1.5" width="12" height="8" rx="1.5" stroke="currentColor" stroke-width="1.3" />
+              <path d="M4.5 12.5H9.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+              <path d="M7 9.5V12.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+            </svg>
+          </div>
+          <div class="tip-text"><strong>Desktop browser only.</strong> No mobile apps — use tiktok.com in a desktop
+            browser only.</div>
+        </div>
+        <div class="tip">
+          <div class="tip-icon">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3" />
+              <path d="M3.5 3.5L10.5 10.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+            </svg>
+          </div>
+          <div class="tip-text"><strong>No editing on TikTok.</strong> Don't trim, add effects, or preview — this
+            triggers re-compression.</div>
+        </div>
+        <div class="tip">
+          <div class="tip-icon">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5.5 10.5V3.5L11.5 2V9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"
+                stroke-linejoin="round" />
+              <circle cx="3.5" cy="10.5" r="1.5" stroke="currentColor" stroke-width="1.3" />
+              <circle cx="9.5" cy="9" r="1.5" stroke="currentColor" stroke-width="1.3" />
+            </svg>
+          </div>
+          <div class="tip-text"><strong>Original audio only.</strong> Don't add songs from TikTok's library — use only
+            the audio already in your video.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="privacy-outer">
+    <span id="privacy-text">processed locally • file never leaves your device</span>
+  </div>
+  </div>
+
+  <script>
+    let currentFile = null;
+    let isPatching = false;
+
+    function formatSize(bytes) {
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    }
+
+    function setFile(file) {
+      currentFile = file;
+      document.getElementById('fileName').textContent = file.name;
+      document.getElementById('fileSize').textContent = formatSize(file.size);
+      document.getElementById('fileInfo').classList.add('show');
+      document.getElementById('patchBtn').disabled = false;
+      document.getElementById('statusRow').classList.remove('show');
+    }
+
+    function clearFile() {
+      currentFile = null;
+      document.getElementById('fileInfo').classList.remove('show');
+      document.getElementById('patchBtn').disabled = true;
+      document.getElementById('statusRow').classList.remove('show');
+      document.getElementById('file-input').value = '';
+    }
+
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('file-input');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', e => { if (e.target.files[0]) setFile(e.target.files[0]); });
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('over'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('over');
+      const f = e.dataTransfer.files[0];
+      if (f) setFile(f);
+    });
+    document.getElementById('removeBtn').addEventListener('click', clearFile);
+
+    document.getElementById('patchBtn').addEventListener('click', async () => {
+      if (!currentFile || isPatching) return;
+      isPatching = true;
+      const btn = document.getElementById('patchBtn');
+      btn.disabled = true;
+      btn.textContent = 'Patching...';
+
+      const buf = await currentFile.arrayBuffer();
+      const data = new Uint8Array(buf);
+      const target = [0x65, 0x6c, 0x73, 0x74];
+      let idx = -1;
+      for (let i = 0; i <= data.length - 4; i++) {
+        if (data[i] === target[0] && data[i + 1] === target[1] && data[i + 2] === target[2] && data[i + 3] === target[3]) {
+          idx = i; break;
+        }
+      }
+
+      let patched = false;
+      if (idx !== -1) { data[idx + 8] = 0x10; patched = true; }
+
+      const blob = new Blob([data], { type: currentFile.type || 'video/mp4' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = currentFile.name.replace(/(\.[^.]+)$/, '_patched$1');
+      a.click();
+      URL.revokeObjectURL(url);
+
+      const row = document.getElementById('statusRow');
+      row.className = 'status-row show ' + (patched ? 'patched' : 'warn');
+      document.getElementById('statusText').textContent = patched
+        ? 'elst atom found and patched → download started'
+        : 'elst atom not found — file downloaded without changes';
+
+      isPatching = false;
+      btn.disabled = false;
+      btn.textContent = 'Apply patch & download';
+    });
+  </script>
+</body>
+
+</html>
